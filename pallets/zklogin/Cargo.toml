@@ -1,0 +1,51 @@
+[package]
+name = "pallet-zklogin"
+authors = { workspace = true }
+description = "A pallet for providing web2 login functionality to moonbeam"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+log = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+
+# risc0
+risc0-zkvm = { version = "0.20.1" }
+
+# Substrate
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true, features = ["derive"] }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+
+# Benchmarks
+frame-benchmarking = { workspace = true, optional = true }
+
+[dev-dependencies]
+pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+frame-benchmarking = { workspace = true, features = ["std"] }
+sp-io = { workspace = true, features = ["std"] }
+rlp = { workspace = true, features = ["std"] }
+
+[features]
+default = ["std"]
+std = [
+    "pallet-balances/std",
+    "frame-support/std",
+    "frame-system/std",
+    "scale-info/std",
+    "sp-core/std",
+    "sp-io/std",
+    "sp-runtime/std",
+    "sp-std/std",
+    "pallet-timestamp/std",
+    "rlp/std",
+]
+runtime-benchmarks = ["frame-benchmarking"]
+try-runtime = ["frame-support/try-runtime"]
