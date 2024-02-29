@@ -7,11 +7,11 @@ version = "0.1.0"
 
 [dependencies]
 log = { workspace = true }
-serde_json = { workspace = true }
-bincode = { workspace = true }
 
 # risc0
-risc0-zkvm = { version = "0.20.1" }
+risc0-zkvm = { version = "0.20.1", default-features = false }
+serde_json = { version = "1.0", default-features = false }
+serde = { version = "1.0", default-features = false }
 
 # Substrate
 frame-support = { workspace = true }
@@ -31,7 +31,6 @@ pallet-balances = { workspace = true, features = ["std"] }
 pallet-timestamp = { workspace = true, features = ["std"] }
 frame-benchmarking = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
-rlp = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
@@ -45,7 +44,7 @@ std = [
     "sp-runtime/std",
     "sp-std/std",
     "pallet-timestamp/std",
-    "rlp/std",
+    "risc0-zkvm/std",
 ]
 runtime-benchmarks = ["frame-benchmarking"]
 try-runtime = ["frame-support/try-runtime"]

@@ -1436,6 +1436,7 @@ impl pallet_precompile_benchmarks::Config for Runtime {
 }
 
 impl pallet_zklogin::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_zklogin::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1499,7 +1500,7 @@ construct_runtime! {
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51,
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
-		ZkLogin: pallet_zklogin::{Pallet, Call} = 54,
+		ZkLogin: pallet_zklogin::{Pallet, Call, Storage, Event<T>} = 54,
 	}
 }
 

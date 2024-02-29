@@ -31,6 +31,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use sp_std::vec::Vec;
 
 	/// Pallet for web2 based zk login
 	#[pallet::pallet]
@@ -39,32 +40,64 @@ pub mod pallet {
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type WeightInfo: WeightInfo;
+	}
+
+	#[pallet::storage]
+	/// The current image id which should produce zklogin proofs
+	type ZkLoginImageIdValue<T: Config> = StorageValue<_, BoundedVec<u32, ConstU32<8>>, ValueQuery>;
+
+	/// Events of this pallet.
+	#[pallet::event]
+	#[pallet::generate_deposit(pub(super) fn deposit_event)]
+	pub enum Event<T: Config> {
+		/// Receipt verified
+		ReceiptVerified,
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
+		/// Invalid image id
+		InvalidImageId,
 		/// Invalid receipt
 		InvalidReceipt,
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		// TODO(rodrigo): This extrinsic should be removed once LocalAssets pallet storage is removed
+		/// Set the image id which should produce zklogin proofs
 		#[pallet::call_index(0)]
+		#[pallet::weight(0)]
+		pub fn set_image_id(
+			origin: OriginFor<T>,
+			image_id: BoundedVec<u32, ConstU32<8>>,
+		) -> DispatchResult {
+			ensure_root(origin)?;
+
+			ZkLoginImageIdValue::<T>::put(image_id);
+
+			Ok(())
+		}
+
+		#[pallet::call_index(1)]
 		#[pallet::weight(0)]
 		pub fn verify_proof(origin: OriginFor<T>, receipt: Vec<u8>) -> DispatchResult {
 			ensure_signed(origin)?;
 
 			let receipt: risc0_zkvm::Receipt =
-				bincode::deserialize(&receipt).expect("receipt decoding failed");
+				serde_json::from_slice(&receipt).map_err(|_| Error::<T>::InvalidReceipt)?;
+
+			let image_id: [u32; 8] = ZkLoginImageIdValue::<T>::get()
+				.as_slice()
+				.try_into()
+				.map_err(|_| Error::<T>::InvalidImageId)?;
 
 			receipt
-				.verify([
-					1111233366, 3033915141, 2264007272, 2477151813, 1203581266, 3251748210,
-					2083204866, 752029018,
-				])
+				.verify(image_id)
 				.expect("receipt verification failed");
+
+			Self::deposit_event(Event::ReceiptVerified);
 
 			Ok(())
 		}
