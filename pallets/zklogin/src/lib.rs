@@ -21,6 +21,7 @@
 
 pub mod weights;
 pub use weights::WeightInfo;
+mod types;
 
 use frame_support::pallet;
 
@@ -32,6 +33,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 	use sp_std::vec::Vec;
+	use types::ImageId;
 
 	/// Pallet for web2 based zk login
 	#[pallet::pallet]
@@ -46,7 +48,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	/// The current image id which should produce zklogin proofs
-	type ZkLoginImageIdValue<T: Config> = StorageValue<_, BoundedVec<u32, ConstU32<8>>, ValueQuery>;
+	type ImageIdValue<T: Config> = StorageValue<_, ImageId, ValueQuery>;
 
 	/// Events of this pallet.
 	#[pallet::event]
@@ -69,13 +71,11 @@ pub mod pallet {
 		/// Set the image id which should produce zklogin proofs
 		#[pallet::call_index(0)]
 		#[pallet::weight(0)]
-		pub fn set_image_id(
-			origin: OriginFor<T>,
-			image_id: BoundedVec<u32, ConstU32<8>>,
-		) -> DispatchResult {
+		pub fn set_image_id(origin: OriginFor<T>, image_id: ImageId) -> DispatchResult {
+			// TODO should be only executed by a governance origin
 			ensure_root(origin)?;
 
-			ZkLoginImageIdValue::<T>::put(image_id);
+			ImageIdValue::<T>::put(image_id);
 
 			Ok(())
 		}
@@ -88,7 +88,7 @@ pub mod pallet {
 			let receipt: risc0_zkvm::Receipt =
 				serde_json::from_slice(&receipt).map_err(|_| Error::<T>::InvalidReceipt)?;
 
-			let image_id: [u32; 8] = ZkLoginImageIdValue::<T>::get()
+			let image_id: [u32; 8] = ImageIdValue::<T>::get()
 				.as_slice()
 				.try_into()
 				.map_err(|_| Error::<T>::InvalidImageId)?;
